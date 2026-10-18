@@ -401,8 +401,9 @@ def main():
     init_db()
     if not args.dashboard_only:
         threading.Thread(target=publisher_loop, daemon=True).start()
-    server = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
-    print(f"Metering simulator: http://127.0.0.1:{args.port}", flush=True)
+    bind_host = os.getenv("SIMULATOR_BIND_HOST", "127.0.0.1")
+    server = ThreadingHTTPServer((bind_host, args.port), Handler)
+    print(f"Metering simulator: http://{bind_host}:{args.port}", flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

@@ -15,8 +15,14 @@ function showError(message) {
   toastTimer = setTimeout(() => toast.classList.remove('show'), 4500);
 }
 
-async function request(path, options) {
-  const response = await fetch(path, options);
+async function request(path, options = {}) {
+  const prefix = location.pathname.startsWith('/simulator/') ? '/simulator' : '';
+  if (prefix && options.method && options.method !== 'GET') {
+    const auth = await fetch('/api/auth/me', { credentials: 'same-origin', cache: 'no-store' });
+    const session = await auth.json();
+    options.headers = { ...options.headers, 'X-CSRF-Token': session.csrf_token || '' };
+  }
+  const response = await fetch(`${prefix}${path}`, options);
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
   return data;
