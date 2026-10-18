@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Live MQTT metering simulator for Wheelworks">
+  <title>Wheelworks | Metering Simulator</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <main class="page">
+    <header class="page-header">
+      <div class="brand-mark" aria-hidden="true">W</div>
+      <div>
+        <p class="eyebrow">WHEELWORKS / MQTT SIMULATOR</p>
+        <h1>Metering sliders</h1>
+        <p class="description">Set the current utility reading for each machine. Changes publish to MQTT automatically.</p>
+      </div>
+      <span id="connection" class="connection" role="status" aria-live="polite">Connecting…</span>
+    </header>
+    <div id="areas" class="areas" aria-live="off"></div>
+    <p id="empty" class="empty" hidden>No metering points are available from the dashboard.</p>
+  </main>
+  <div id="toast" class="toast" role="alert" aria-live="assertive"></div>
+</body>
+</html>
