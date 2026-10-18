@@ -232,17 +232,26 @@ def _publish_batch():
         client.connect()
         now = datetime.now(timezone.utc).isoformat(timespec="milliseconds")
         records = []
+        batch_payloads = []
+        batch_mode = os.getenv("SIMULATOR_BATCH_MQTT") == "1"
         for sensor in sensors:
             value = round(max(sensor["min_value"], min(simulation_ceiling(sensor["min_value"], sensor["max_value"]), sensor["current_value"])), 2)
             topic = f"{cfg['topic_prefix'].strip('/')}/{slug(sensor['area'])}/{slug(sensor['metric'])}"
-            payload = json.dumps({
+            reading = {
                 "sensor_id": sensor["id"], "area": sensor["area"], "metric": sensor["metric"],
                 "value": value, "unit": sensor["unit"], "timestamp": now,
                 "primary": bool(sensor["primary_utility"]), "simulated": True, "quality": "good",
-            }, separators=(",", ":"))
-            client.publish(topic, payload)
+            }
+            payload = json.dumps(reading, separators=(",", ":"))
+            if batch_mode:
+                batch_payloads.append(reading)
+            else:
+                client.publish(topic, payload)
             records.append((sensor["id"], topic, payload, now))
             count += 1
+        if batch_payloads:
+            client.publish(f"{cfg['topic_prefix'].strip('/')}/batch",
+                           json.dumps({"readings": batch_payloads}, separators=(",", ":")))
         with db() as conn:
             conn.executemany("INSERT INTO readings (sensor_id, topic, payload, published_at) VALUES (?,?,?,?)", records)
             conn.execute("DELETE FROM readings WHERE id NOT IN (SELECT id FROM readings ORDER BY id DESC LIMIT 500)")
